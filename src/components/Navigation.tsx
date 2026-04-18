@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Menu, X, Home, ShoppingCart, User, LogOut, LayoutDashboard, Settings, ShieldCheck, 
-  ChevronRight, CreditCard as PricingIcon, Trophy, Zap, TrendingUp, Info, Store
+import {
+  Menu, X, Home, ShoppingCart, User, LogOut, LayoutDashboard, ShieldCheck,
+  Trophy, Zap, TrendingUp, Info, Store, Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../App';
 import { cn } from '../lib/utils';
+
+const bottomNavItems = [
+  { name: 'Нүүр', path: '/', icon: Home },
+  { name: 'Leaderboard', path: '/dashboard', icon: Trophy },
+  { name: 'I Want To', path: '/order', icon: Heart },
+  { name: 'DadStore', path: '/business', icon: Store },
+  { name: 'My Profile', path: '/dashboard', icon: User },
+];
 
 export function Navigation() {
   const { user, profile, signOut } = useAuth();
@@ -32,14 +40,14 @@ export function Navigation() {
       {/* Top Navigation */}
       <nav className="h-[56px] md:h-[64px] bg-surface sticky top-0 z-50 px-4 md:px-6 flex items-center justify-between">
         <div className="flex items-center gap-3 md:gap-5">
-          <button 
+          <button
             onClick={() => setSidebarOpen(true)}
             className="text-[#64748b] hover:text-primary transition-colors p-1"
           >
             <Menu className="w-5 h-5 md:w-6 md:h-6" />
           </button>
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="DaddyDeveloper" className="w-8 h-8 md:w-9 md:h-9 rounded-lg object-cover" />
+            <img src="/logo.png" alt="DaddyDeveloper" className="w-8 h-8 md:w-9 md:h-9 object-contain" />
             <span className="text-[16px] md:text-[20px] font-extrabold text-primary tracking-tight">DADDY DEVELOPER</span>
           </Link>
         </div>
@@ -70,7 +78,7 @@ export function Navigation() {
 
         <div className="flex items-center gap-2 md:gap-6">
           {!user && (
-            <Link 
+            <Link
               to="/auth"
               className="md:hidden p-2 text-primary hover:bg-primary/5 rounded-full transition-colors flex items-center gap-1.5"
             >
@@ -80,7 +88,7 @@ export function Navigation() {
           )}
 
           {user && (
-            <button 
+            <button
               onClick={() => signOut()}
               className="md:hidden p-2 text-[#64748b] hover:text-primary transition-colors hover:bg-gray-100 rounded-full"
               title="Гарах"
@@ -88,7 +96,7 @@ export function Navigation() {
               <LogOut className="w-5 h-5" />
             </button>
           )}
-          
+
           <div className="hidden md:flex items-center gap-6">
             <Link to="/about" className="text-sm font-medium text-[#64748b] hover:text-primary transition-colors">Бидний Тухай</Link>
             <Link to="/#pricing" className="text-sm font-medium text-[#64748b] hover:text-primary transition-colors">Үнийн санал</Link>
@@ -98,7 +106,7 @@ export function Navigation() {
                   <User className="w-4 h-4 text-primary" />
                   {profile?.name || 'Хэрэглэгч'} ({profile?.membership || 'Гишүүн'})
                 </Link>
-                <button 
+                <button
                   onClick={() => signOut()}
                   className="text-sm font-medium text-[#64748b] hover:text-primary transition-colors"
                 >
@@ -147,8 +155,8 @@ export function Navigation() {
                     onClick={() => setSidebarOpen(false)}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
-                      location.pathname === item.path 
-                        ? "bg-gray-900 text-white shadow-md shadow-gray-200" 
+                      location.pathname === item.path
+                        ? "bg-gray-900 text-white shadow-md shadow-gray-200"
                         : "hover:bg-gray-100 text-gray-600"
                     )}
                   >
@@ -170,7 +178,7 @@ export function Navigation() {
                         <div className="text-[9px] uppercase tracking-wider text-gray-400 font-bold">{profile?.membership || 'Free'}</div>
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={() => {
                         signOut();
                         setSidebarOpen(false);
@@ -181,7 +189,7 @@ export function Navigation() {
                       <LogOut className="w-4 h-4" />
                     </button>
                   </div>
-                  
+
                   <button
                     onClick={() => {
                       signOut();
@@ -199,20 +207,26 @@ export function Navigation() {
         )}
       </AnimatePresence>
 
-      {/* Bottom Navigation (Fixed) */}
-      <div className="fixed bottom-0 left-0 right-0 h-[64px] md:h-[80px] bg-surface z-40 px-4 md:px-6 flex items-center justify-center gap-2 md:gap-4 overflow-hidden">
-        <Link 
-          to="/order"
-          className="flex-1 md:flex-none bg-primary text-white px-4 md:px-10 py-3 rounded-xl font-black text-[11px] md:text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-center uppercase tracking-tighter"
-        >
-          Захиалга Өгөх
-        </Link>
-        <Link 
-          to="/dashboard"
-          className="flex-1 md:flex-none bg-[#0f172a] text-white px-4 md:px-10 py-3 rounded-xl font-black text-[11px] md:text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all text-center uppercase tracking-tighter"
-        >
-          Миний Захиалга
-        </Link>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 h-[60px] bg-surface z-40 flex items-center justify-around px-2">
+        {bottomNavItems.map((item) => {
+          const isActive = location.pathname === item.path &&
+            !(item.name === 'My Profile' && location.pathname === '/dashboard' && bottomNavItems.find(i => i.name === 'Leaderboard')?.path === '/dashboard');
+          const active = location.pathname === item.path;
+          return (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={cn(
+                "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors",
+                active ? "text-primary" : "text-[#94a3b8] hover:text-[#64748b]"
+              )}
+            >
+              <item.icon className={cn("w-5 h-5", active && "fill-primary/10")} strokeWidth={active ? 2.5 : 1.8} />
+              <span className="hidden md:block text-[9px] font-bold uppercase tracking-wide">{item.name}</span>
+            </Link>
+          );
+        })}
       </div>
     </>
   );
