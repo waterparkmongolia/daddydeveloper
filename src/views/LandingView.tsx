@@ -92,7 +92,7 @@ export function LandingView() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className={cn(
-                  "relative p-6 md:p-8 rounded-xl border flex flex-col h-full hover:shadow-xl transition-all duration-300 bg-surface",
+                  "relative p-5 rounded-xl border flex flex-col h-full hover:shadow-xl transition-all duration-300 bg-surface",
                   plan.popular ? "border-primary ring-1 ring-primary shadow-lg shadow-primary/5" : "border-border-base"
                 )}
               >
@@ -106,9 +106,9 @@ export function LandingView() {
                   <plan.icon className={cn("w-6 h-6", plan.popular ? "text-primary" : "text-[#64748b]")} />
                 </div>
                 
-                <div className="flex items-baseline gap-2 mb-2">
-                  <div className="text-[20px] font-bold line-through text-gray-400 opacity-50">{plan.oldPrice}</div>
-                  <div className="text-[28px] font-black text-[#0f172a]">{plan.price}</div>
+                <div className="flex flex-col mb-2">
+                  <div className="text-[13px] font-bold line-through text-gray-400 opacity-50">{plan.oldPrice}</div>
+                  <div className="text-[22px] font-black text-[#0f172a]">{plan.price}</div>
                 </div>
                 <h3 className="text-[14px] font-bold mb-4 uppercase tracking-wider text-[#64748b]">{plan.title}</h3>
                 <p className="text-sm text-[#64748b] mb-8 flex-1 leading-relaxed">

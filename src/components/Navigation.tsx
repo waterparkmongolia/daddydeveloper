@@ -38,8 +38,9 @@ export function Navigation() {
           >
             <Menu className="w-5 h-5 md:w-6 md:h-6" />
           </button>
-          <Link to="/" className="text-[16px] md:text-[20px] font-extrabold text-primary tracking-tight">
-            DADDY DEVELOPER
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="DaddyDeveloper" className="w-8 h-8 md:w-9 md:h-9 rounded-lg object-cover" />
+            <span className="text-[16px] md:text-[20px] font-extrabold text-primary tracking-tight">DADDY DEVELOPER</span>
           </Link>
         </div>
 
