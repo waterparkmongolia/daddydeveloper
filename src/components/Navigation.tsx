@@ -4,137 +4,175 @@ import {
   Menu, X, Home, ShoppingCart, User, LogOut, LayoutDashboard, ShieldCheck,
   Trophy, Zap, TrendingUp, Info, Store, Heart,
   Utensils, Gamepad2, Briefcase, BookOpen, BadgeDollarSign,
-  GraduationCap, Plane, Tv, HandHeart, Star, ThumbsUp
+  GraduationCap, Plane, Tv, HandHeart, Star, ThumbsUp,
+  ShoppingBag, UserPlus, LineChart, Headphones, Coffee, Laugh, Archive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../App';
 import { cn } from '../lib/utils';
 
 const iWantToItems = [
-  { label: 'Eat',    icon: Utensils,         color: 'from-orange-400 to-red-400',    text: 'text-orange-50' },
-  { label: 'Play',   icon: Gamepad2,          color: 'from-purple-500 to-indigo-500', text: 'text-purple-50' },
-  { label: 'Work',   icon: Briefcase,         color: 'from-slate-600 to-slate-800',   text: 'text-slate-50'  },
-  { label: 'Study',  icon: BookOpen,          color: 'from-blue-400 to-cyan-400',     text: 'text-blue-50'   },
-  { label: 'Earn',   icon: BadgeDollarSign,   color: 'from-emerald-400 to-green-500', text: 'text-emerald-50'},
-  { label: 'Learn',  icon: GraduationCap,     color: 'from-violet-500 to-purple-600', text: 'text-violet-50' },
-  { label: 'Travel', icon: Plane,             color: 'from-sky-400 to-blue-500',      text: 'text-sky-50'    },
-  { label: 'Watch',  icon: Tv,               color: 'from-pink-400 to-rose-500',     text: 'text-pink-50'   },
-  { label: 'Help',   icon: HandHeart,         color: 'from-red-400 to-pink-500',      text: 'text-red-50'    },
-  { label: 'Rate',   icon: Star,              color: 'from-yellow-400 to-amber-500',  text: 'text-yellow-50' },
-  { label: 'Vote',   icon: ThumbsUp,          color: 'from-teal-400 to-cyan-500',     text: 'text-teal-50'   },
+  { label: 'Eat',     icon: Utensils,       color: 'from-orange-400 to-red-500',      text: 'text-orange-50'  },
+  { label: 'Play',    icon: Gamepad2,        color: 'from-purple-500 to-indigo-600',   text: 'text-purple-50'  },
+  { label: 'Work',    icon: Briefcase,       color: 'from-slate-500 to-slate-800',     text: 'text-slate-50'   },
+  { label: 'Study',   icon: BookOpen,        color: 'from-blue-400 to-cyan-500',       text: 'text-blue-50'    },
+  { label: 'Earn',    icon: BadgeDollarSign, color: 'from-emerald-400 to-green-600',   text: 'text-emerald-50' },
+  { label: 'Learn',   icon: GraduationCap,   color: 'from-violet-500 to-purple-700',   text: 'text-violet-50'  },
+  { label: 'Travel',  icon: Plane,           color: 'from-sky-400 to-blue-600',        text: 'text-sky-50'     },
+  { label: 'Watch',   icon: Tv,              color: 'from-pink-400 to-rose-600',       text: 'text-pink-50'    },
+  { label: 'Help',    icon: HandHeart,       color: 'from-red-400 to-pink-600',        text: 'text-red-50'     },
+  { label: 'Rate',    icon: Star,            color: 'from-yellow-400 to-amber-600',    text: 'text-yellow-50'  },
+  { label: 'Vote',    icon: ThumbsUp,        color: 'from-teal-400 to-cyan-600',       text: 'text-teal-50'    },
+  { label: 'Shop',    icon: ShoppingBag,     color: 'from-fuchsia-500 to-pink-600',    text: 'text-fuchsia-50' },
+  { label: 'Invite',  icon: UserPlus,        color: 'from-lime-400 to-green-500',      text: 'text-lime-50'    },
+  { label: 'Invest',  icon: LineChart,       color: 'from-indigo-500 to-blue-700',     text: 'text-indigo-50'  },
+  { label: 'Listen',  icon: Headphones,      color: 'from-rose-400 to-red-600',        text: 'text-rose-50'    },
+  { label: 'Relax',   icon: Coffee,          color: 'from-amber-400 to-orange-500',    text: 'text-amber-50'   },
+  { label: 'Enjoy',   icon: Laugh,           color: 'from-cyan-400 to-teal-600',       text: 'text-cyan-50'    },
+  { label: 'Collect', icon: Archive,         color: 'from-stone-500 to-stone-700',     text: 'text-stone-50'   },
 ];
 
 const bottomNavItems = [
-  { name: 'Нүүр',       path: '/',          icon: Home,   modal: false },
+  { name: 'Нүүр',        path: '/',          icon: Home,   modal: false },
   { name: 'Leaderboard', path: '/dashboard', icon: Trophy, modal: false },
-  { name: 'I Want To',  path: '/order',     icon: Heart,  modal: true  },
-  { name: 'DadStore',   path: '/business',  icon: Store,  modal: false },
-  { name: 'My Profile', path: '/dashboard', icon: User,   modal: false },
+  { name: 'I Want To',   path: '/order',     icon: Heart,  modal: true  },
+  { name: 'DadStore',    path: '/business',  icon: Store,  modal: false },
+  { name: 'My Profile',  path: '/dashboard', icon: User,   modal: false },
 ];
 
 function IWantToModal({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
 
-  const handleSelect = (label: string) => {
+  const handleSelect = () => {
     onClose();
     navigate('/order');
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[80] flex flex-col justify-end"
-      onClick={onClose}
-    >
-      {/* Blurred backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-
+    <AnimatePresence>
       <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="relative bg-[#0f172a] rounded-t-[32px] px-5 pt-6 pb-10"
-        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[80] flex flex-col"
+        onClick={onClose}
       >
-        {/* Handle bar */}
-        <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-6" />
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-xl" />
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <motion.p
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-white/50 text-[10px] uppercase tracking-[0.25em] font-bold"
-            >
-              What do you want?
-            </motion.p>
-            <motion.h2
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 }}
-              className="text-white text-[26px] font-black tracking-tight leading-tight"
-            >
-              I Want To...
-            </motion.h2>
-          </div>
-          <motion.button
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:bg-white/20 transition-colors"
+        {/* Mobile: bottom sheet */}
+        <div className="md:hidden absolute inset-x-0 bottom-0" onClick={e => e.stopPropagation()}>
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+            className="bg-[#0f172a] rounded-t-[32px] px-4 pt-5 pb-10"
           >
-            <X className="w-4 h-4" />
-          </motion.button>
+            <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
+            <div className="flex items-end justify-between mb-5">
+              <div>
+                <p className="text-white/40 text-[9px] uppercase tracking-[0.25em] font-black">What do you want?</p>
+                <h2 className="text-white text-[24px] font-black tracking-tight">I Want To...</h2>
+              </div>
+              <button type="button" title="Хаах" onClick={onClose}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-4 gap-2.5">
+              {iWantToItems.map((item, i) => (
+                <motion.button
+                  type="button"
+                  key={item.label}
+                  initial={{ opacity: 0, scale: 0.4, y: 24 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ delay: 0.05 + i * 0.03, type: 'spring', damping: 16, stiffness: 340 }}
+                  whileHover={{ scale: 1.08, y: -2 }}
+                  whileTap={{ scale: 0.88 }}
+                  onClick={handleSelect}
+                  className={cn('flex flex-col items-center justify-center gap-1.5 rounded-2xl p-2.5 aspect-square bg-gradient-to-br shadow-md', item.color)}
+                >
+                  <item.icon className={cn('w-5 h-5', item.text)} strokeWidth={1.8} />
+                  <span className={cn('text-[9px] font-black uppercase tracking-wide leading-none', item.text)}>{item.label}</span>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-4 gap-3">
-          {iWantToItems.map((item, i) => (
-            <motion.button
-              key={item.label}
-              initial={{ opacity: 0, scale: 0.5, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.5, y: 20 }}
-              transition={{
-                delay: 0.1 + i * 0.04,
-                type: 'spring',
-                damping: 18,
-                stiffness: 320,
-              }}
-              whileHover={{ scale: 1.08, y: -3 }}
-              whileTap={{ scale: 0.93 }}
-              onClick={() => handleSelect(item.label)}
-              className={cn(
-                'flex flex-col items-center justify-center gap-2 rounded-2xl p-3 aspect-square',
-                'bg-gradient-to-br shadow-lg',
-                item.color
-              )}
-            >
-              <item.icon className={cn('w-6 h-6', item.text)} strokeWidth={1.8} />
-              <span className={cn('text-[10px] font-black uppercase tracking-wide leading-none', item.text)}>
-                {item.label}
-              </span>
-            </motion.button>
-          ))}
-
-          {/* Empty filler to keep grid balanced (11 items → add 1 placeholder) */}
+        {/* Desktop: full screen */}
+        <div className="hidden md:flex absolute inset-0 items-center justify-center p-8" onClick={e => e.stopPropagation()}>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.55 }}
-            className="rounded-2xl bg-white/5 aspect-square flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.92, y: 24 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 24 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 260 }}
+            className="w-full h-full bg-[#080f1e] rounded-[40px] flex flex-col overflow-hidden relative"
           >
-            <span className="text-white/20 text-[18px] font-black">+</span>
+            {/* Ambient glows */}
+            <div className="absolute top-[-120px] left-[-80px] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[-100px] right-[-60px] w-[400px] h-[400px] bg-violet-600/20 rounded-full blur-[100px] pointer-events-none" />
+
+            {/* Header */}
+            <div className="relative flex items-center justify-between px-12 pt-10 pb-6">
+              <div>
+                <motion.p
+                  initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}
+                  className="text-white/40 text-[11px] uppercase tracking-[0.3em] font-black mb-1"
+                >
+                  Choose your vibe
+                </motion.p>
+                <motion.h1
+                  initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.12 }}
+                  className="text-white text-[48px] font-black tracking-tight leading-none"
+                >
+                  I Want To<span className="text-primary">.</span><span className="text-primary/60">.</span><span className="text-primary/30">.</span>
+                </motion.h1>
+              </div>
+              <motion.button
+                type="button" title="Хаах"
+                initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }}
+                whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+                onClick={onClose}
+                className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
+            </div>
+
+            {/* Grid */}
+            <div className="relative flex-1 px-12 pb-10 overflow-auto">
+              <div className="grid grid-cols-6 gap-4 h-full">
+                {iWantToItems.map((item, i) => (
+                  <motion.button
+                    type="button"
+                    key={item.label}
+                    initial={{ opacity: 0, scale: 0.5, y: 40 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ delay: 0.08 + i * 0.035, type: 'spring', damping: 18, stiffness: 300 }}
+                    whileHover={{ scale: 1.06, y: -6, transition: { type: 'spring', damping: 14, stiffness: 400 } }}
+                    whileTap={{ scale: 0.93 }}
+                    onClick={handleSelect}
+                    className={cn(
+                      'flex flex-col items-center justify-center gap-3 rounded-3xl p-5',
+                      'bg-gradient-to-br shadow-2xl cursor-pointer aspect-square',
+                      item.color
+                    )}
+                  >
+                    <item.icon className={cn('w-9 h-9', item.text)} strokeWidth={1.6} />
+                    <span className={cn('text-[13px] font-black uppercase tracking-widest leading-none', item.text)}>
+                      {item.label}
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
           </motion.div>
         </div>
       </motion.div>
-    </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -202,18 +240,13 @@ export function Navigation() {
 
         <div className="flex items-center gap-2 md:gap-6">
           {!user && (
-            <Link
-              to="/auth"
-              className="md:hidden p-2 text-primary hover:bg-primary/5 rounded-full transition-colors flex items-center gap-1.5"
-            >
+            <Link to="/auth" className="md:hidden p-2 text-primary hover:bg-primary/5 rounded-full transition-colors flex items-center gap-1.5">
               <User className="w-5 h-5" />
               <span className="text-[11px] font-black uppercase">Нэвтрэх</span>
             </Link>
           )}
           {user && (
-            <button
-              type="button"
-              onClick={() => signOut()}
+            <button type="button" onClick={() => signOut()}
               className="md:hidden p-2 text-[#64748b] hover:text-primary transition-colors hover:bg-gray-100 rounded-full"
               title="Гарах"
             >
@@ -229,7 +262,7 @@ export function Navigation() {
                   <User className="w-4 h-4 text-primary" />
                   {profile?.name || 'Хэрэглэгч'} ({profile?.membership || 'Гишүүн'})
                 </Link>
-                <button onClick={() => signOut()} className="text-sm font-medium text-[#64748b] hover:text-primary transition-colors">
+                <button type="button" onClick={() => signOut()} className="text-sm font-medium text-[#64748b] hover:text-primary transition-colors">
                   Гарах
                 </button>
               </div>
@@ -258,20 +291,16 @@ export function Navigation() {
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="text-lg font-display font-bold">Menu</span>
-                <button onClick={() => setSidebarOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-full">
+                <button type="button" title="Хаах" onClick={() => setSidebarOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-full">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="flex-1 space-y-1">
                 {menuItems.map((item) => (
-                  <Link
-                    key={item.path} to={item.path}
-                    onClick={() => setSidebarOpen(false)}
+                  <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
-                      location.pathname === item.path
-                        ? "bg-gray-900 text-white shadow-md shadow-gray-200"
-                        : "hover:bg-gray-100 text-gray-600"
+                      location.pathname === item.path ? "bg-gray-900 text-white shadow-md" : "hover:bg-gray-100 text-gray-600"
                     )}
                   >
                     <item.icon className="w-4 h-4" />
@@ -291,16 +320,14 @@ export function Navigation() {
                         <div className="text-[9px] uppercase tracking-wider text-gray-400 font-bold">{profile?.membership || 'Free'}</div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      title="Системээс гарах"
+                    <button type="button" title="Системээс гарах"
                       onClick={() => { signOut(); setSidebarOpen(false); }}
                       className="p-1.5 hover:bg-red-50 text-red-500 rounded-full transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                     </button>
                   </div>
-                  <button
+                  <button type="button"
                     onClick={() => { signOut(); setSidebarOpen(false); }}
                     className="w-full flex items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50 transition-colors font-bold text-xs"
                   >
@@ -323,8 +350,7 @@ export function Navigation() {
       <div className="fixed bottom-0 left-0 right-0 h-[60px] bg-surface z-40 flex items-center justify-around px-2">
         {bottomNavItems.map((item) => {
           const active = location.pathname === item.path;
-          const isIWT = item.modal;
-          return isIWT ? (
+          return item.modal ? (
             <button
               key={item.name}
               type="button"
