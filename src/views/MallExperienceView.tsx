@@ -212,7 +212,7 @@ export function MallExperienceView() {
           <div className="flex items-center gap-2">
               <Store className={`w-4 h-4 ${isInsideStore ? 'text-primary' : 'text-white'}`} />
               <div className={`text-[10px] font-black uppercase tracking-widest ${isInsideStore ? 'text-slate-900' : 'text-white'}`}>
-                  {viewingProducts ? `Бараа ${currentProductIndex + 1} / ${DEMO_SHOP_DATA.products.length}` : `№{shopId} - ${isDemoShop ? DEMO_SHOP_DATA.name : (mall?.name || 'Shop')}`}
+                  {viewingProducts ? `Бараа ${currentProductIndex + 1} / ${DEMO_SHOP_DATA.products.length}` : `${currentFloor}-р давхар · ${currentShopIndex}-р тоот${isDemoShop ? ` · ${DEMO_SHOP_DATA.name}` : ''}`}
               </div>
           </div>
           
