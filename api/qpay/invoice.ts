@@ -26,6 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const invoicePayload = {
       invoice_code: process.env.QPAY_INVOICE_CODE?.trim() || 'XPLUS_INVOICE',
       sender_invoice_no: String(orderId),
+      invoice_receiver_code: 'terminal',
       invoice_description: description || 'Daddy Developer захиалга',
       amount: Number(amount),
       callback_url: `https://${req.headers.host}/api/qpay/callback?orderId=${orderId}`,
