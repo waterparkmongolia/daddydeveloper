@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        request.auth.token.email == 'javkhlantai@gmail.com'
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity validations
+    function isValidUser(data) {
+      return data.uid is string && data.uid.size() <= 128 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 15 &&
+             data.role in ['user', 'admin'] &&
+             (data.membership == null || data.membership is string) &&
+             (data.initialInvestment == null || data.initialInvestment is number) &&
+             (data.recordValue == null || data.recordValue is number) &&
+             (data.additionalDev == null || data.additionalDev is number);
+    }
+
+    function isValidOrder(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.shopName is string && data.shopName.size() > 0 && data.shopName.size() <= 200 &&
+             data.orderType is string && data.orderType.size() > 0 &&
+             data.status in ['pending', 'contacted', 'working', 'completed'];
+    }
+
+    function isValidMall(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.floors is number && data.floors > 0 && data.floors <= 100 &&
+             (data.coverImage == null || (data.coverImage is string && data.coverImage.size() <= 1000000)) &&
+             data.createdBy is string && data.createdBy.size() <= 128;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && 
+                   (request.resource.data.role == 'user' || 
+                    (request.resource.data.role == 'admin' && request.auth.token.email == 'javkhlantai@gmail.com'));
+      allow update: if (isOwner(userId) && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'additionalDev']) &&
+                    isValidUser(request.resource.data)) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Orders
+    match /orders/{orderId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidOrder(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentStatus', 'paidAt']));
+      allow delete: if isAdmin();
+    }
+
+    // Malls
+    match /malls/{mallId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidMall(request.resource.data) && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAdmin() && isValidMall(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}

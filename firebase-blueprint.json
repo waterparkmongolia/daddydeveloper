@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "membership": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "phone", "role"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Order for building a website",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "phone": { "type": "string" },
+        "shopName": { "type": "string" },
+        "shopLogo": { "type": "string" },
+        "shopCategory": { "type": "string" },
+        "description": { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "orderType": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "contacted", "working", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "shopName", "orderType", "status"]
+    },
+    "Mall": {
+      "title": "Mall",
+      "description": "Information about a virtual mall",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "floors": { "type": "number" },
+        "coverImage": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "floors", "createdBy"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User documents"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders collection"
+    },
+    "/malls/{mallId}": {
+      "schema": "Mall",
+      "description": "Virtual malls collection"
+    }
+  }
+}

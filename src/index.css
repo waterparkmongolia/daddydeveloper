@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #2563eb;
+  --color-primary-dark: #1e40af;
+  --color-surface: #ffffff;
+  --color-bg-base: #f8fafc;
+  --color-border-base: #e2e8f0;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-bg-base text-[#0f172a];
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+}
+
+.section-title {
+  @apply text-[11px] md:text-[13px] font-bold uppercase tracking-wider text-[#64748b] mb-3 md:mb-4 border-l-[3px] border-primary pl-2;
+}
+
+.card-polish {
+  @apply bg-surface border border-border-base rounded-xl p-3.5 md:p-5 shadow-sm;
+}
+
+.input-polish {
+  @apply w-full bg-[#fcfcfd] border border-border-base rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-[#94a3b8];
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
