@@ -28,22 +28,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { amount, description, orderId } = req.body;
-    const token = await getQPayToken();
+    console.log('Invoice request:', { amount, description, orderId });
 
-    const response = await axios.post(`${QPAY_URL}/invoice`, {
-      invoice_code: process.env.QPAY_INVOICE_CODE || 'TEST_INVOICE',
+    const token = await getQPayToken();
+    console.log('QPay token obtained');
+
+    const invoicePayload = {
+      invoice_code: process.env.QPAY_INVOICE_CODE || 'XPLUS_INVOICE',
       sender_invoice_no: orderId,
       invoice_receiver_code: 'TERMINAL',
       invoice_description: description || 'Daddy Developer Website Development',
-      amount,
+      amount: amount,
       callback_url: `https://${req.headers.host}/api/qpay/callback?orderId=${orderId}`,
-    }, {
+    };
+
+    console.log('Invoice payload:', invoicePayload);
+
+    const response = await axios.post(`${QPAY_URL}/invoice`, invoicePayload, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     res.json(response.data);
   } catch (error: any) {
-    console.error('QPay Invoice Error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to create QPay invoice' });
+    const errData = error.response?.data || error.message;
+    console.error('QPay Invoice Error:', JSON.stringify(errData));
+    res.status(500).json({ error: 'Failed to create QPay invoice', detail: errData });
   }
 }
