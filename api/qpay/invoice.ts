@@ -3,14 +3,9 @@ import axios from 'axios';
 
 const QPAY_URL = 'https://merchant.qpay.mn/v2';
 
-let qpayToken: string | null = null;
-let tokenExpiresAt = 0;
-
 async function getQPayToken() {
-  if (qpayToken && Date.now() < tokenExpiresAt) return qpayToken;
-
-  const username = process.env.QPAY_USERNAME;
-  const password = process.env.QPAY_PASSWORD;
+  const username = process.env.QPAY_USERNAME?.trim();
+  const password = process.env.QPAY_PASSWORD?.trim();
   if (!username || !password) throw new Error('QPAY credentials not configured');
 
   const auth = Buffer.from(`${username}:${password}`).toString('base64');
@@ -18,9 +13,7 @@ async function getQPayToken() {
     headers: { Authorization: `Basic ${auth}` },
   });
 
-  qpayToken = response.data.access_token;
-  tokenExpiresAt = Date.now() + (response.data.expires_in - 60) * 1000;
-  return qpayToken;
+  return response.data.access_token as string;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -28,24 +21,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { amount, description, orderId } = req.body;
-    console.log('Invoice request:', { amount, description, orderId });
-
     const token = await getQPayToken();
-    console.log('QPay token obtained');
 
     const invoicePayload = {
-      invoice_code: process.env.QPAY_INVOICE_CODE || 'XPLUS_INVOICE',
-      sender_invoice_no: orderId,
-      invoice_receiver_code: 'TERMINAL',
-      invoice_description: description || 'Daddy Developer Website Development',
-      amount: amount,
+      invoice_code: process.env.QPAY_INVOICE_CODE?.trim() || 'XPLUS_INVOICE',
+      sender_invoice_no: String(orderId),
+      invoice_description: description || 'Daddy Developer захиалга',
+      amount: Number(amount),
       callback_url: `https://${req.headers.host}/api/qpay/callback?orderId=${orderId}`,
     };
 
-    console.log('Invoice payload:', invoicePayload);
-
     const response = await axios.post(`${QPAY_URL}/invoice`, invoicePayload, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     });
 
     res.json(response.data);
