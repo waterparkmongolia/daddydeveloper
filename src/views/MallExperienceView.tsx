@@ -276,6 +276,10 @@ export function MallExperienceView() {
                                 <div className="flex-1 min-w-0">
                                     <h2 className="text-base font-black text-slate-900 uppercase italic tracking-tighter leading-tight">{DEMO_SHOP_DATA.name}</h2>
                                     <p className="text-primary font-black text-[8px] uppercase tracking-[0.2em] mt-0.5">Эзэмшигч: {DEMO_SHOP_DATA.owner}</p>
+                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                        <span className="bg-slate-100 text-slate-600 text-[7px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">{currentFloor}-р давхар</span>
+                                        <span className="bg-slate-100 text-slate-600 text-[7px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">{currentShopIndex}-р тоот</span>
+                                    </div>
                                 </div>
                             </div>
 
