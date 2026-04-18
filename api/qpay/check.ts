@@ -1,0 +1,45 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import axios from 'axios';
+
+const QPAY_URL = 'https://merchant.qpay.mn/v2';
+
+let qpayToken: string | null = null;
+let tokenExpiresAt = 0;
+
+async function getQPayToken() {
+  if (qpayToken && Date.now() < tokenExpiresAt) return qpayToken;
+
+  const username = process.env.QPAY_USERNAME;
+  const password = process.env.QPAY_PASSWORD;
+  if (!username || !password) throw new Error('QPAY credentials not configured');
+
+  const auth = Buffer.from(`${username}:${password}`).toString('base64');
+  const response = await axios.post(`${QPAY_URL}/auth/token`, {}, {
+    headers: { Authorization: `Basic ${auth}` },
+  });
+
+  qpayToken = response.data.access_token;
+  tokenExpiresAt = Date.now() + (response.data.expires_in - 60) * 1000;
+  return qpayToken;
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  try {
+    const { invoiceId } = req.query;
+    const token = await getQPayToken();
+
+    const response = await axios.post(`${QPAY_URL}/payment/check`, {
+      object_type: 'INVOICE',
+      object_id: invoiceId,
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('QPay Check Error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to check QPay payment' });
+  }
+}
