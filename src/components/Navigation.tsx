@@ -30,7 +30,7 @@ export function Navigation() {
   return (
     <>
       {/* Top Navigation */}
-      <nav className="h-[56px] md:h-[64px] border-b bg-surface sticky top-0 z-50 px-4 md:px-6 flex items-center justify-between">
+      <nav className="h-[56px] md:h-[64px] bg-surface sticky top-0 z-50 px-4 md:px-6 flex items-center justify-between">
         <div className="flex items-center gap-3 md:gap-5">
           <button 
             onClick={() => setSidebarOpen(true)}
@@ -199,7 +199,7 @@ export function Navigation() {
       </AnimatePresence>
 
       {/* Bottom Navigation (Fixed) */}
-      <div className="fixed bottom-0 left-0 right-0 h-[64px] md:h-[80px] bg-surface border-t z-40 px-4 md:px-6 flex items-center justify-center gap-2 md:gap-4 overflow-hidden">
+      <div className="fixed bottom-0 left-0 right-0 h-[64px] md:h-[80px] bg-surface z-40 px-4 md:px-6 flex items-center justify-center gap-2 md:gap-4 overflow-hidden">
         <Link 
           to="/order"
           className="flex-1 md:flex-none bg-primary text-white px-4 md:px-10 py-3 rounded-xl font-black text-[11px] md:text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-center uppercase tracking-tighter"
