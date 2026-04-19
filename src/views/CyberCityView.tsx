@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -365,12 +365,13 @@ export function CyberCityView() {
                   </div>
                 </div>
 
-                {/* Mobile: list | Desktop: grid like pricing */}
-                <div className="md:hidden max-w-xl mx-auto space-y-3">
-                  {citizenTypes.map((ct, i) => (
-                    <MobileCard key={ct.id} ct={ct} i={i} selected={selectedType?.id === ct.id}
-                      onSelect={() => { setSelectedType(ct); setStage('form'); }} />
-                  ))}
+                {/* Mobile: swipe carousel | Desktop: grid like pricing */}
+                <div className="md:hidden">
+                  <MobileSwipeCarousel
+                    citizenTypes={citizenTypes}
+                    selected={selectedType}
+                    onSelect={(ct) => { setSelectedType(ct); setStage('form'); }}
+                  />
                 </div>
 
                 <div className="hidden md:grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
@@ -439,6 +440,139 @@ function Row({ label, value, small, accent }: { label: string; value: string; sm
     <div className="flex items-center justify-between">
       <span className="text-white/40 text-[10px] uppercase tracking-widest font-black">{label}</span>
       <span className={`font-black ${small ? 'text-[10px]' : 'text-xs'} ${accent ? 'text-blue-300' : 'text-white/70'}`}>{value}</span>
+    </div>
+  );
+}
+
+function MobileSwipeCarousel({ citizenTypes, selected, onSelect }: {
+  citizenTypes: CitizenType[];
+  selected: CitizenType | null;
+  onSelect: (ct: CitizenType) => void;
+}) {
+  const initialIndex = selected ? Math.max(0, citizenTypes.findIndex(c => c.id === selected.id)) : 0;
+  const [index, setIndex] = useState(initialIndex);
+  const [dragX, setDragX] = useState(0);
+  const startXRef = useRef(0);
+  const isDragging = useRef(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Card occupies 82% of container, 3% margin each side = 88% slot
+  // translateX to center card[i] = (6 - i * 88)%
+  const basePercent = 6 - index * 88;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    startXRef.current = e.touches[0].clientX;
+    isDragging.current = true;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    setDragX(e.touches[0].clientX - startXRef.current);
+  };
+  const onTouchEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    const threshold = (wrapRef.current?.clientWidth ?? 300) * 0.22;
+    if (dragX < -threshold && index < citizenTypes.length - 1) setIndex(i => i + 1);
+    else if (dragX > threshold && index > 0) setIndex(i => i - 1);
+    setDragX(0);
+  };
+
+  const ct = citizenTypes[index];
+
+  return (
+    <div ref={wrapRef} className="select-none">
+      {/* Carousel track */}
+      <div
+        className="overflow-hidden py-4"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div
+          className="flex"
+          style={{
+            transform: `translateX(calc(${basePercent}% + ${dragX}px))`,
+            transition: isDragging.current ? 'none' : 'transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            willChange: 'transform',
+          }}
+        >
+          {citizenTypes.map((item, i) => {
+            const isActive = i === index;
+            return (
+              <div
+                key={item.id}
+                className="flex-shrink-0 mx-[3%]"
+                style={{ width: '82%' }}
+              >
+                <motion.div
+                  animate={{ scale: isActive ? 1 : 0.88, opacity: isActive ? 1 : 0.45 }}
+                  transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+                  className={`relative rounded-3xl border overflow-hidden ${item.border} ${item.glow || ''}`}
+                >
+                  {item.popular && (
+                    <div className="absolute top-0 left-0 right-0 text-center py-1.5 bg-black/30 backdrop-blur-sm z-10">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-white/80">Most Popular</span>
+                    </div>
+                  )}
+                  {item.animated && (
+                    <motion.div
+                      animate={{ x: ['-100%', '200%'] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }}
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none z-10"
+                    />
+                  )}
+                  <div className={`bg-gradient-to-br ${item.gradient} p-6 flex flex-col`}>
+                    <div className={`w-12 h-12 rounded-2xl bg-black/20 flex items-center justify-center mb-4 ${item.popular ? 'mt-4' : ''}`}>
+                      <item.icon className={`w-6 h-6 ${item.textColor}`} strokeWidth={1.8} />
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-widest opacity-60 ${item.textColor} bg-black/15 px-2 py-0.5 rounded-full self-start mb-2`}>
+                      {item.colorName}
+                    </span>
+                    <p className={`font-black text-[26px] leading-none mb-0.5 ${item.textColor}`}>
+                      {item.price.toLocaleString()}₮
+                    </p>
+                    <p className={`text-[10px] font-bold opacity-60 mb-3 ${item.textColor}`}>/сар</p>
+                    <h3 className={`font-black text-sm uppercase tracking-wide mb-4 ${item.textColor}`}>{item.name}</h3>
+                    <div className="space-y-2">
+                      {item.perks.map(p => (
+                        <div key={p} className={`flex items-center gap-2 text-[12px] font-medium ${item.textColor} opacity-90`}>
+                          <Check className="w-3.5 h-3.5 shrink-0 opacity-70" strokeWidth={2.5} />
+                          <span>{p}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Dots */}
+      <div className="flex justify-center gap-1.5 mb-5">
+        {citizenTypes.map((item, i) => (
+          <button
+            key={i}
+            type="button"
+            title={item.name}
+            onClick={() => setIndex(i)}
+            className={`rounded-full transition-all duration-300 ${i === index ? 'w-5 h-1.5 bg-blue-400' : 'w-1.5 h-1.5 bg-white/20'}`}
+          />
+        ))}
+      </div>
+
+      {/* Select button */}
+      <div className="px-6">
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.96 }}
+          onClick={() => onSelect(ct)}
+          className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-colors bg-gradient-to-r ${ct.gradient} ${ct.textColor} shadow-lg`}
+        >
+          {ct.name} — Сонгох
+        </motion.button>
+      </div>
     </div>
   );
 }
