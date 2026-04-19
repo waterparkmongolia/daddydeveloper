@@ -92,5 +92,14 @@ service cloud.firestore {
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow delete: if isAdmin();
     }
+
+    // Cyber City messages / ideas
+    match /cyberMessages/{docId} {
+      allow read: if isAdmin();
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if true;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }
