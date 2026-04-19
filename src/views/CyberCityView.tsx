@@ -461,15 +461,15 @@ function MobileSwipeCarousel({ citizenTypes, selected, onSelect }: {
   // translateX = (12 - i * 76)%
   const basePercent = 12 - index * 76;
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    startXRef.current = e.touches[0].clientX;
+  const startDrag = (clientX: number) => {
+    startXRef.current = clientX;
     isDragging.current = true;
   };
-  const onTouchMove = (e: React.TouchEvent) => {
+  const moveDrag = (clientX: number) => {
     if (!isDragging.current) return;
-    setDragX(e.touches[0].clientX - startXRef.current);
+    setDragX(clientX - startXRef.current);
   };
-  const onTouchEnd = () => {
+  const endDrag = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
     const threshold = (wrapRef.current?.clientWidth ?? 300) * 0.22;
@@ -484,10 +484,14 @@ function MobileSwipeCarousel({ citizenTypes, selected, onSelect }: {
     <div ref={wrapRef} className="select-none">
       {/* Carousel track */}
       <div
-        className="overflow-hidden py-4"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        className="overflow-hidden py-4 cursor-grab active:cursor-grabbing"
+        onTouchStart={e => startDrag(e.touches[0].clientX)}
+        onTouchMove={e => moveDrag(e.touches[0].clientX)}
+        onTouchEnd={endDrag}
+        onMouseDown={e => startDrag(e.clientX)}
+        onMouseMove={e => moveDrag(e.clientX)}
+        onMouseUp={endDrag}
+        onMouseLeave={endDrag}
       >
         <div
           className="flex"
