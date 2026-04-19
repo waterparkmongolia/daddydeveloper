@@ -5,7 +5,8 @@ import {
   Trophy, Zap, TrendingUp, Info, Store, Heart,
   Utensils, Gamepad2, Briefcase, BookOpen, BadgeDollarSign,
   GraduationCap, Plane, Tv, HandHeart, Star, ThumbsUp,
-  ShoppingBag, UserPlus, LineChart, Headphones, Coffee, Laugh, Archive
+  ShoppingBag, UserPlus, LineChart, Headphones, Coffee, Laugh, Archive,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../App';
@@ -183,9 +184,10 @@ export function Navigation() {
   const location = useLocation();
 
   const menuItems = [
+    { name: 'Cyber City', path: '/cyber-city', icon: Globe, cyber: true },
     { name: 'Нүүр', path: '/', icon: Home },
     { name: 'Бидний Тухай', path: '/about', icon: Info },
-    { name: 'Бидний Бизнес', path: '/business', icon: Store },
+    { name: 'DadStore', path: '/business', icon: Store },
     { name: 'Захиалга Өгөх', path: '/order', icon: ShoppingCart },
     { name: 'Миний Захиалга', path: '/dashboard', icon: LayoutDashboard },
     ...(profile?.role === 'admin' ? [{ name: 'Админ', path: '/admin', icon: ShieldCheck }] : []),
@@ -296,15 +298,20 @@ export function Navigation() {
                 </button>
               </div>
               <div className="flex-1 space-y-1">
-                {menuItems.map((item) => (
+                {menuItems.map((item: any) => (
                   <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
-                      location.pathname === item.path ? "bg-gray-900 text-white shadow-md" : "hover:bg-gray-100 text-gray-600"
+                      item.cyber
+                        ? "bg-[#030712] text-blue-400 border border-blue-500/30 hover:border-blue-400/60 mb-2"
+                        : location.pathname === item.path ? "bg-gray-900 text-white shadow-md" : "hover:bg-gray-100 text-gray-600"
                     )}
                   >
-                    <item.icon className="w-4 h-4" />
-                    <span className="font-semibold text-sm">{item.name}</span>
+                    <item.icon className={cn("w-4 h-4", item.cyber && "text-blue-400")} />
+                    <span className={cn("font-semibold text-sm", item.cyber && "font-black tracking-wide")}>{item.name}</span>
+                    {item.cyber && (
+                      <span className="ml-auto text-[8px] font-black uppercase tracking-widest text-blue-400/60 bg-blue-400/10 px-1.5 py-0.5 rounded-full">Enter</span>
+                    )}
                   </Link>
                 ))}
               </div>

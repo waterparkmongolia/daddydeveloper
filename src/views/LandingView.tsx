@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { Check, ChevronRight, Rocket, Shield, Clock, GraduationCap, Heart, Star, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
 const pricingPlans = [
@@ -45,8 +45,16 @@ const pricingPlans = [
 ];
 
 export function LandingView() {
+  const navigate = useNavigate();
+  const lastTap = useRef(0);
+  const handleDoubleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTap.current < 400) navigate('/cyber-city');
+    lastTap.current = now;
+  }, [navigate]);
+
   return (
-    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth bg-bg-base">
+    <div className="h-full overflow-y-auto no-scrollbar scroll-smooth bg-bg-base" onClick={handleDoubleTap}>
       {/* Hero Section */}
       <section className="min-h-[70vh] flex flex-col items-center justify-center p-4 md:p-6 text-center">
         <motion.div

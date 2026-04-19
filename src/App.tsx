@@ -23,6 +23,7 @@ import { Intro } from './components/Intro';
 import { BusinessView } from './views/BusinessView';
 import { AdminMallView } from './views/AdminMallView';
 import { MallExperienceView } from './views/MallExperienceView';
+import { CyberCityView } from './views/CyberCityView';
 
 interface UserProfile {
   uid: string;
@@ -119,6 +120,7 @@ export default function App() {
               <Route path="/dashboard" element={user ? <DashboardView /> : <Navigate to="/auth" />} />
               <Route path="/admin" element={profile?.role === 'admin' ? <AdminView /> : <Navigate to="/" />} />
               <Route path="/business" element={<BusinessView />} />
+              <Route path="/cyber-city" element={<CyberCityView />} />
               <Route path="/mall/admin" element={profile?.role === 'admin' ? <AdminMallView /> : <Navigate to="/" />} />
               <Route path="/mall/:mallId" element={<MallExperienceView />} />
             </Routes>
