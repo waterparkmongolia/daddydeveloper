@@ -27,10 +27,10 @@ export function CyberCityPaymentView() {
   const [checking, setChecking] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // State passed from CyberCityView
+  // State passed from CyberCityView (no React components — only plain values)
   const {
     paymentInfo,
-    selectedType,
+    selectedTypeId, selectedTypeName, selectedTypePrice,
     ccid, ccrn, ccbd,
     fullName, username, birthday,
   } = (state || {}) as any;
@@ -53,9 +53,9 @@ export function CyberCityPaymentView() {
             userId: user?.uid || null,
             fullName, username, birthday,
             ccid, ccrn, ccbd,
-            citizenType: selectedType?.id,
-            citizenName: selectedType?.name,
-            monthlyFee: selectedType?.price,
+            citizenType: selectedTypeId,
+            citizenName: selectedTypeName,
+            monthlyFee: selectedTypePrice,
             paymentStatus: 'paid',
             createdAt: serverTimestamp(),
           });
@@ -87,7 +87,7 @@ export function CyberCityPaymentView() {
         </button>
         <div className="text-center">
           <p className="text-white/40 text-[9px] uppercase tracking-[0.3em] font-black">Төлбөр</p>
-          <p className="text-white font-black text-sm">{selectedType?.name}</p>
+          <p className="text-white font-black text-sm">{selectedTypeName}</p>
         </div>
         <div className="w-16" />
       </div>
@@ -117,7 +117,7 @@ export function CyberCityPaymentView() {
             </div>
           )}
           <div className="mt-5 text-center">
-            <p className="text-white font-black text-2xl">{selectedType?.price?.toLocaleString()}₮</p>
+            <p className="text-white font-black text-2xl">{selectedTypePrice?.toLocaleString()}₮</p>
             <p className="text-white/30 text-xs mt-1">/сар</p>
           </div>
         </div>

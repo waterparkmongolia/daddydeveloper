@@ -209,7 +209,13 @@ export function CyberCityView() {
         orderId: ccrn,
       });
       navigate('/cyber-city/payment', {
-        state: { paymentInfo: res.data, selectedType, ccid, ccrn, ccbd, fullName, username, birthday },
+        state: {
+          paymentInfo: res.data,
+          selectedTypeId: selectedType!.id,
+          selectedTypeName: selectedType!.name,
+          selectedTypePrice: selectedType!.price,
+          ccid, ccrn, ccbd, fullName, username, birthday,
+        },
       });
     } catch (err) {
       console.error(err);
