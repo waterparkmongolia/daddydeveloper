@@ -155,18 +155,21 @@ export function CyberCityView() {
     });
   }, [isPresident]);
 
-  // Check username uniqueness with debounce
-  useEffect(() => {
-    if (!username.trim()) { setUsernameTaken(false); return; }
+  const checkUsername = async (val: string) => {
+    if (!val.trim()) { setUsernameTaken(false); return; }
     setUsernameChecking(true);
-    const timer = setTimeout(async () => {
+    try {
       const snap = await getDocs(collection(db, 'cyberCitizens'));
-      const taken = snap.docs.some(d => (d.data().username || '').toLowerCase() === username.trim().toLowerCase());
+      const taken = snap.docs.some(d =>
+        (d.data().username || '').toLowerCase() === val.trim().toLowerCase()
+      );
       setUsernameTaken(taken);
+    } catch {
+      setUsernameTaken(false);
+    } finally {
       setUsernameChecking(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [username]);
+    }
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -185,7 +188,7 @@ export function CyberCityView() {
     try {
       const presidentType = { id: 'president', name: 'President of Cyber City', price: 0 };
       const type = isPresident ? presidentType : selectedType!;
-      await addDoc(collection(db, 'cyberCitizens'), {
+      const ref = await addDoc(collection(db, 'cyberCitizens'), {
         userId: user?.uid || null,
         fullName, username, birthday,
         ccid, ccrn, ccbd,
@@ -200,7 +203,7 @@ export function CyberCityView() {
       const res = await axios.post('/api/qpay/invoice', {
         amount: selectedType!.price,
         description: `Cyber City - ${selectedType!.name}`,
-        orderId: ccrn,
+        orderId: ref.id,
       });
       setPaymentInfo(res.data);
       setStage('payment');
@@ -275,9 +278,13 @@ export function CyberCityView() {
 
                   <Field label="Username" error={errors.username}>
                     <div className="relative">
-                      <input value={username} onChange={e => { setUsername(e.target.value); setUsernameTaken(false); }}
+                      <input
+                        value={username}
+                        onChange={e => { setUsername(e.target.value); setUsernameTaken(false); }}
+                        onBlur={e => checkUsername(e.target.value)}
                         placeholder="@username"
-                        className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none transition-colors ${usernameTaken ? 'border-red-500/60 focus:border-red-500' : 'border-white/10 focus:border-blue-400/50'}`} />
+                        className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none transition-colors ${usernameTaken ? 'border-red-500/60' : 'border-white/10 focus:border-blue-400/50'}`}
+                      />
                       {usernameChecking && <div className="absolute right-3 top-3.5 w-4 h-4 border-2 border-white/20 border-t-blue-400 rounded-full animate-spin" />}
                       {!usernameChecking && username && !usernameTaken && <div className="absolute right-3 top-3.5 w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center"><Check className="w-2.5 h-2.5 text-emerald-400" /></div>}
                     </div>
