@@ -464,9 +464,9 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 
 function AutoField({ label, value, small, highlight }: { label: string; value: string; small?: boolean; highlight?: boolean }) {
   return (
-    <div>
-      <p className="text-white/40 text-[9px] uppercase tracking-widest font-black mb-1.5 leading-tight">{label}</p>
-      <div className={`bg-white/5 border rounded-xl px-3 py-3 font-black ${small ? 'text-[10px]' : 'text-sm'} ${highlight ? 'text-emerald-300 border-emerald-400/20' : 'text-blue-300 border-white/5'}`}>
+    <div className="flex flex-col">
+      <p className="text-white/40 text-[9px] uppercase tracking-widest font-black mb-1.5 leading-tight h-8 flex items-center">{label}</p>
+      <div className={`bg-white/5 border rounded-xl px-3 py-3 font-black h-12 flex items-center ${small ? 'text-[10px]' : 'text-sm'} ${highlight ? 'text-emerald-300 border-emerald-400/20' : 'text-blue-300 border-white/5'}`}>
         {value}
       </div>
     </div>

@@ -83,5 +83,14 @@ service cloud.firestore {
       allow update: if isAdmin() && isValidMall(request.resource.data);
       allow delete: if isAdmin();
     }
+
+    // Cyber City citizens
+    match /cyberCitizens/{docId} {
+      allow read: if isSignedIn();
+      allow list: if true;
+      allow create: if true;
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
   }
 }
