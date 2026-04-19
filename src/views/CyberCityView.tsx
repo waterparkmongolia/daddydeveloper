@@ -186,24 +186,29 @@ export function CyberCityView() {
     if (!validate()) return;
     setPaying(true);
     try {
-      const presidentType = { id: 'president', name: 'President of Cyber City', price: 0 };
-      const type = isPresident ? presidentType : selectedType!;
-      const ref = await addDoc(collection(db, 'cyberCitizens'), {
-        userId: user?.uid || null,
-        fullName, username, birthday,
-        ccid, ccrn, ccbd,
-        citizenType: type.id,
-        citizenName: type.name,
-        monthlyFee: type.price,
-        paymentStatus: isPresident ? 'free' : 'pending',
-        createdAt: serverTimestamp(),
-      });
-      // President skips payment
-      if (isPresident) { setStage('success'); return; }
+      // President: save to Firestore and skip payment
+      if (isPresident) {
+        try {
+          await addDoc(collection(db, 'cyberCitizens'), {
+            userId: user?.uid || null,
+            fullName, username, birthday,
+            ccid, ccrn, ccbd,
+            citizenType: 'president',
+            citizenName: 'President of Cyber City',
+            monthlyFee: 0,
+            paymentStatus: 'free',
+            createdAt: serverTimestamp(),
+          });
+        } catch (e) { console.warn('Firestore save failed:', e); }
+        setStage('success');
+        return;
+      }
+
+      // Regular user: call QPay first (orderId = ccrn, already unique)
       const res = await axios.post('/api/qpay/invoice', {
         amount: selectedType!.price,
         description: `Cyber City - ${selectedType!.name}`,
-        orderId: ref.id,
+        orderId: ccrn,
       });
       setPaymentInfo(res.data);
       setStage('payment');
@@ -222,6 +227,19 @@ export function CyberCityView() {
       const res = await axios.get(`/api/qpay/check?invoiceId=${paymentInfo.invoice_id}`);
       const rows = res.data?.rows || [];
       if (rows.some((r: any) => r.payment_status === 'PAID')) {
+        // Save to Firestore after confirmed payment
+        try {
+          await addDoc(collection(db, 'cyberCitizens'), {
+            userId: user?.uid || null,
+            fullName, username, birthday,
+            ccid, ccrn, ccbd,
+            citizenType: selectedType!.id,
+            citizenName: selectedType!.name,
+            monthlyFee: selectedType!.price,
+            paymentStatus: 'paid',
+            createdAt: serverTimestamp(),
+          });
+        } catch (e) { console.warn('Firestore save failed:', e); }
         setStage('success');
       } else {
         alert('Төлбөр баталгаажаагүй байна. Дахин шалгана уу.');
