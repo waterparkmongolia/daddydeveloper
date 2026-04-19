@@ -398,7 +398,17 @@ export function CyberCityView() {
                   <Row label="Иргэний төрөл" value={selectedType?.name || ''} accent />
                 </div>
                 <motion.button type="button" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                  onClick={() => navigate('/cyber-city/home')}
+                  onClick={() => navigate('/cyber-city/home', {
+                    state: {
+                      citizen: {
+                        ccid,
+                        username,
+                        fullName,
+                        citizenType: isPresident ? 'president' : selectedType?.id,
+                        citizenName: isPresident ? 'President of Cyber City' : selectedType?.name,
+                      },
+                    },
+                  })}
                   className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-violet-600 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-blue-500/30">
                   Cyber City рүү орох →
                 </motion.button>

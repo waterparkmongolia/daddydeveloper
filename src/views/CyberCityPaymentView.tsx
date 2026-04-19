@@ -61,7 +61,17 @@ export function CyberCityPaymentView() {
           });
         } catch (e) { console.warn('Firestore:', e); }
         setSuccess(true);
-        setTimeout(() => navigate('/cyber-city/home'), 2200);
+        setTimeout(() => navigate('/cyber-city/home', {
+          state: {
+            citizen: {
+              ccid,
+              username,
+              fullName,
+              citizenType: selectedTypeId,
+              citizenName: selectedTypeName,
+            },
+          },
+        }), 2200);
       } else {
         alert('Төлбөр баталгаажаагүй байна. Дахин шалгана уу.');
       }

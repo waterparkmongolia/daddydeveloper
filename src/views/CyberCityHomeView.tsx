@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, getDocs, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../App';
@@ -34,8 +34,11 @@ function CyberGrid() {
 export function CyberCityHomeView() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [citizen, setCitizen] = useState<any>(null);
-  const [loadingCitizen, setLoadingCitizen] = useState(true);
+  const location = useLocation();
+  // Citizen data passed from registration — no Firestore dependency needed
+  const navCitizen = (location.state as any)?.citizen ?? null;
+  const [citizen, setCitizen] = useState<any>(navCitizen);
+  const [loadingCitizen, setLoadingCitizen] = useState(!navCitizen);
   const [usedCredits, setUsedCredits] = useState(0);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -43,6 +46,7 @@ export function CyberCityHomeView() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    if (navCitizen) return; // Already have data from registration navigate
     async function load() {
       if (!user) { setLoadingCitizen(false); return; }
       try {
