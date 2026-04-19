@@ -193,7 +193,10 @@ export function Navigation() {
     ...(profile?.role === 'admin' ? [{ name: 'Админ', path: '/admin', icon: ShieldCheck }] : []),
   ];
 
-  if (location.pathname.includes('/mall/') && !location.pathname.includes('/admin')) {
+  if (
+    (location.pathname.includes('/mall/') && !location.pathname.includes('/admin')) ||
+    location.pathname.startsWith('/cyber-city')
+  ) {
     return null;
   }
 
