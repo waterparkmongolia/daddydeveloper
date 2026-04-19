@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronRight, Check, Zap, Shield, Crown, Star, Flame, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 
-type Stage = 'form' | 'choose' | 'payment' | 'success';
+type Stage = 'form' | 'choose' | 'success';
 
 interface CitizenType {
   id: string;
@@ -144,8 +144,6 @@ export function CyberCityView() {
   const ccbd = formatCCBD();
   const [selectedType, setSelectedType] = useState<CitizenType | null>(null);
   const [paying, setPaying] = useState(false);
-  const [paymentInfo, setPaymentInfo] = useState<any>(null);
-  const [checkingPayment, setCheckingPayment] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -210,44 +208,14 @@ export function CyberCityView() {
         description: `Cyber City - ${selectedType!.name}`,
         orderId: ccrn,
       });
-      setPaymentInfo(res.data);
-      setStage('payment');
+      navigate('/cyber-city/payment', {
+        state: { paymentInfo: res.data, selectedType, ccid, ccrn, ccbd, fullName, username, birthday },
+      });
     } catch (err) {
       console.error(err);
       alert('Алдаа гарлаа. Дахин оролдоно уу.');
     } finally {
       setPaying(false);
-    }
-  };
-
-  const handleCheckPayment = async () => {
-    if (!paymentInfo?.invoice_id) return;
-    setCheckingPayment(true);
-    try {
-      const res = await axios.get(`/api/qpay/check?invoiceId=${paymentInfo.invoice_id}`);
-      const rows = res.data?.rows || [];
-      if (rows.some((r: any) => r.payment_status === 'PAID')) {
-        // Save to Firestore after confirmed payment
-        try {
-          await addDoc(collection(db, 'cyberCitizens'), {
-            userId: user?.uid || null,
-            fullName, username, birthday,
-            ccid, ccrn, ccbd,
-            citizenType: selectedType!.id,
-            citizenName: selectedType!.name,
-            monthlyFee: selectedType!.price,
-            paymentStatus: 'paid',
-            createdAt: serverTimestamp(),
-          });
-        } catch (e) { console.warn('Firestore save failed:', e); }
-        setStage('success');
-      } else {
-        alert('Төлбөр баталгаажаагүй байна. Дахин шалгана уу.');
-      }
-    } catch {
-      alert('Шалгахад алдаа гарлаа.');
-    } finally {
-      setCheckingPayment(false);
     }
   };
 
@@ -404,37 +372,6 @@ export function CyberCityView() {
                     <DesktopCard key={ct.id} ct={ct} i={i} selected={selectedType?.id === ct.id}
                       onSelect={() => { setSelectedType(ct); setStage('form'); }} />
                   ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* ─── PAYMENT ─── */}
-            {stage === 'payment' && paymentInfo && (
-              <motion.div key="payment" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-                className="max-w-sm mx-auto">
-                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-center backdrop-blur-sm">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center mx-auto mb-4">
-                    <Zap className="w-8 h-8 text-blue-400" />
-                  </div>
-                  <h2 className="text-white font-black text-xl mb-1">Төлбөр Төлөх</h2>
-                  <p className="text-white/40 text-xs mb-6">{selectedType?.name} · {selectedType?.price.toLocaleString()}₮/сар</p>
-                  {paymentInfo.qr_image && (
-                    <div className="bg-white p-3 rounded-2xl inline-block mb-4">
-                      <img src={`data:image/png;base64,${paymentInfo.qr_image}`} alt="QPay QR" className="w-44 h-44" />
-                    </div>
-                  )}
-                  {paymentInfo.urls?.length > 0 && (
-                    <div className="flex flex-wrap gap-2 justify-center mb-6">
-                      {paymentInfo.urls.slice(0, 8).map((u: any) => (
-                        <a key={u.name} href={u.link} target="_blank" rel="noreferrer"
-                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-white text-[10px] font-black transition-colors">{u.name}</a>
-                      ))}
-                    </div>
-                  )}
-                  <button type="button" onClick={handleCheckPayment} disabled={checkingPayment}
-                    className="w-full py-4 rounded-2xl bg-blue-500 hover:bg-blue-400 disabled:opacity-50 text-white font-black uppercase tracking-widest text-sm shadow-lg shadow-blue-500/30 transition-colors flex items-center justify-center gap-2">
-                    {checkingPayment ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Баталгаажуулах'}
-                  </button>
                 </div>
               </motion.div>
             )}
