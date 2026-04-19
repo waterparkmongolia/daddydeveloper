@@ -127,12 +127,17 @@ function formatCCBD() {
   return `${y}.${mo}.${d}`;
 }
 
+const PRESIDENT_EMAIL = 'javkhlantai@gmail.com';
+
 export function CyberCityView() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isPresident = user?.email === PRESIDENT_EMAIL;
   const [stage, setStage] = useState<Stage>('form');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameTaken, setUsernameTaken] = useState(false);
   const [birthday, setBirthday] = useState('');
   const [ccid, setCcid] = useState<number | null>(null);
   const [ccrn] = useState(generateCCRN());
@@ -144,15 +149,32 @@ export function CyberCityView() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    getDocs(collection(db, 'cyberCitizens')).then(snap => setCcid(1001 + snap.size));
-  }, []);
+    getDocs(collection(db, 'cyberCitizens')).then(snap => {
+      // President gets CCID #1 (special)
+      setCcid(isPresident ? 1 : 1001 + snap.size);
+    });
+  }, [isPresident]);
+
+  // Check username uniqueness with debounce
+  useEffect(() => {
+    if (!username.trim()) { setUsernameTaken(false); return; }
+    setUsernameChecking(true);
+    const timer = setTimeout(async () => {
+      const snap = await getDocs(collection(db, 'cyberCitizens'));
+      const taken = snap.docs.some(d => (d.data().username || '').toLowerCase() === username.trim().toLowerCase());
+      setUsernameTaken(taken);
+      setUsernameChecking(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [username]);
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (!fullName.trim()) e.fullName = 'Нэр оруулна уу';
     if (!username.trim()) e.username = 'Username оруулна уу';
+    else if (usernameTaken) e.username = 'Энэ нэр байна. Энэ нэрийг хүн авсан.';
     if (!birthday) e.birthday = 'Төрсөн өдрийг оруулна уу';
-    if (!selectedType) e.type = 'Иргэний төрлөө сонгоно уу';
+    if (!selectedType && !isPresident) e.type = 'Иргэний төрлөө сонгоно уу';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -161,20 +183,24 @@ export function CyberCityView() {
     if (!validate()) return;
     setPaying(true);
     try {
-      const ref = await addDoc(collection(db, 'cyberCitizens'), {
+      const presidentType = { id: 'president', name: 'President of Cyber City', price: 0 };
+      const type = isPresident ? presidentType : selectedType!;
+      await addDoc(collection(db, 'cyberCitizens'), {
         userId: user?.uid || null,
         fullName, username, birthday,
         ccid, ccrn, ccbd,
-        citizenType: selectedType!.id,
-        citizenName: selectedType!.name,
-        monthlyFee: selectedType!.price,
-        paymentStatus: 'pending',
+        citizenType: type.id,
+        citizenName: type.name,
+        monthlyFee: type.price,
+        paymentStatus: isPresident ? 'free' : 'pending',
         createdAt: serverTimestamp(),
       });
+      // President skips payment
+      if (isPresident) { setStage('success'); return; }
       const res = await axios.post('/api/qpay/invoice', {
         amount: selectedType!.price,
         description: `Cyber City - ${selectedType!.name}`,
-        orderId: ref.id,
+        orderId: ccrn,
       });
       setPaymentInfo(res.data);
       setStage('payment');
@@ -248,12 +274,17 @@ export function CyberCityView() {
                   </Field>
 
                   <Field label="Username" error={errors.username}>
-                    <input value={username} onChange={e => setUsername(e.target.value)}
-                      placeholder="@username"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-blue-400/50 transition-colors" />
+                    <div className="relative">
+                      <input value={username} onChange={e => { setUsername(e.target.value); setUsernameTaken(false); }}
+                        placeholder="@username"
+                        className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none transition-colors ${usernameTaken ? 'border-red-500/60 focus:border-red-500' : 'border-white/10 focus:border-blue-400/50'}`} />
+                      {usernameChecking && <div className="absolute right-3 top-3.5 w-4 h-4 border-2 border-white/20 border-t-blue-400 rounded-full animate-spin" />}
+                      {!usernameChecking && username && !usernameTaken && <div className="absolute right-3 top-3.5 w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center"><Check className="w-2.5 h-2.5 text-emerald-400" /></div>}
+                    </div>
+                    {usernameTaken && <p className="text-red-400 text-[11px] mt-1.5 font-medium">Энэ нэр байна. Энэ нэрийг хүн авсан.</p>}
                   </Field>
 
-                  <Field label="Birthday — Таны жинхэнэ төрсөн өдөр" error={errors.birthday}>
+                  <Field label="Birthday" error={errors.birthday}>
                     <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)}
                       title="Таны жинхэнэ төрсөн өдөр"
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-400/50 transition-colors [color-scheme:dark]" />
@@ -263,35 +294,48 @@ export function CyberCityView() {
                   <div className="grid grid-cols-3 gap-3">
                     <AutoField label="CCID" value={ccid !== null ? `№${ccid}` : '...'} />
                     <AutoField label="CCRN" value={ccrn} small />
-                    <AutoField label="CCBD — Хотын төрсөн өдөр" value={ccbd} highlight />
+                    <AutoField label="CCBD" value={ccbd} highlight />
                   </div>
 
                   <p className="text-white/30 text-[10px] leading-relaxed">
                     🎂 CCBD нь таны Cyber City-д бүртгүүлсэн өдөр бөгөөд жинхэнэ болон хотын төрсөн өдрийг хоёуланг нь тэмдэглэх боломжтой.
                   </p>
 
-                  {/* Choose Citizen */}
-                  <Field label="Choose Your Citizen" error={errors.type}>
-                    {selectedType ? (
-                      <div onClick={() => setStage('choose')}
-                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer bg-gradient-to-r ${selectedType.gradient} ${selectedType.border}`}>
-                        <div className="flex items-center gap-2">
-                          <selectedType.icon className={`w-4 h-4 ${selectedType.textColor}`} />
-                          <span className={`font-black text-sm ${selectedType.textColor}`}>{selectedType.name}</span>
-                          <span className={`text-[9px] font-black ${selectedType.textColor} opacity-60 bg-black/20 px-1.5 py-0.5 rounded-full`}>{selectedType.colorName}</span>
-                        </div>
-                        <span className={`text-[11px] font-black ${selectedType.textColor} opacity-80`}>{selectedType.price.toLocaleString()}₮/сар</span>
+                  {/* President badge */}
+                  {isPresident && (
+                    <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border border-yellow-500/30 rounded-2xl px-4 py-3">
+                      <span className="text-2xl">👑</span>
+                      <div>
+                        <p className="text-yellow-300 font-black text-sm">President of Cyber City</p>
+                        <p className="text-yellow-400/60 text-[10px]">Үнэгүй бүртгэл · Бүх эрх нээлттэй</p>
                       </div>
-                    ) : (
-                      <button type="button" onClick={() => setStage('choose')}
-                        className="w-full flex items-center justify-between bg-white/5 border border-white/10 hover:border-blue-400/40 rounded-xl px-4 py-3 text-white/40 hover:text-white/70 transition-all">
-                        <span className="text-sm font-medium">Иргэний төрлөө сонгоно уу</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    )}
-                  </Field>
+                    </div>
+                  )}
 
-                  {selectedType && (
+                  {/* Choose Citizen */}
+                  {!isPresident && (
+                    <Field label="Choose Your Citizen" error={errors.type}>
+                      {selectedType ? (
+                        <div onClick={() => setStage('choose')}
+                          className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer bg-gradient-to-r ${selectedType.gradient} ${selectedType.border}`}>
+                          <div className="flex items-center gap-2">
+                            <selectedType.icon className={`w-4 h-4 ${selectedType.textColor}`} />
+                            <span className={`font-black text-sm ${selectedType.textColor}`}>{selectedType.name}</span>
+                            <span className={`text-[9px] font-black ${selectedType.textColor} opacity-60 bg-black/20 px-1.5 py-0.5 rounded-full`}>{selectedType.colorName}</span>
+                          </div>
+                          <span className={`text-[11px] font-black ${selectedType.textColor} opacity-80`}>{selectedType.price.toLocaleString()}₮/сар</span>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => setStage('choose')}
+                          className="w-full flex items-center justify-between bg-white/5 border border-white/10 hover:border-blue-400/40 rounded-xl px-4 py-3 text-white/40 hover:text-white/70 transition-all">
+                          <span className="text-sm font-medium">Иргэний төрлөө сонгоно уу</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      )}
+                    </Field>
+                  )}
+
+                  {!isPresident && selectedType && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                       className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between">
                       <span className="text-white/50 text-xs font-black uppercase tracking-wider">Таны төлбөр</span>
@@ -299,10 +343,10 @@ export function CyberCityView() {
                     </motion.div>
                   )}
 
-                  <motion.button type="button" onClick={handlePay} disabled={paying}
+                  <motion.button type="button" onClick={handlePay} disabled={paying || usernameTaken}
                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                     className="w-full py-4 rounded-2xl bg-blue-500 hover:bg-blue-400 disabled:opacity-50 text-white font-black uppercase tracking-widest text-sm shadow-lg shadow-blue-500/30 transition-colors flex items-center justify-center gap-2">
-                    {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <>Төлбөр Төлөх <ChevronRight className="w-4 h-4" /></>}
+                    {paying ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : isPresident ? <>Үнэгүй Бүртгүүлэх 👑</> : <>Төлбөр Төлөх <ChevronRight className="w-4 h-4" /></>}
                   </motion.button>
                 </div>
               </motion.div>
