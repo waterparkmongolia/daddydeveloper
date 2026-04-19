@@ -456,9 +456,10 @@ function MobileSwipeCarousel({ citizenTypes, selected, onSelect }: {
   const isDragging = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Card occupies 82% of container, 3% margin each side = 88% slot
-  // translateX to center card[i] = (6 - i * 88)%
-  const basePercent = 6 - index * 88;
+  // 10% peek geometry (derived):
+  // card=72%, mx=2% each side, slot=76%, centerOffset=12%
+  // translateX = (12 - i * 76)%
+  const basePercent = 12 - index * 76;
 
   const onTouchStart = (e: React.TouchEvent) => {
     startXRef.current = e.touches[0].clientX;
@@ -492,7 +493,7 @@ function MobileSwipeCarousel({ citizenTypes, selected, onSelect }: {
           className="flex"
           style={{
             transform: `translateX(calc(${basePercent}% + ${dragX}px))`,
-            transition: isDragging.current ? 'none' : 'transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transition: dragX !== 0 ? 'none' : 'transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             willChange: 'transform',
           }}
         >
@@ -501,8 +502,8 @@ function MobileSwipeCarousel({ citizenTypes, selected, onSelect }: {
             return (
               <div
                 key={item.id}
-                className="flex-shrink-0 mx-[3%]"
-                style={{ width: '82%' }}
+                className="flex-shrink-0 mx-[2%]"
+                style={{ width: '72%' }}
               >
                 <motion.div
                   animate={{ scale: isActive ? 1 : 0.88, opacity: isActive ? 1 : 0.45 }}
@@ -521,21 +522,21 @@ function MobileSwipeCarousel({ citizenTypes, selected, onSelect }: {
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none z-10"
                     />
                   )}
-                  <div className={`bg-gradient-to-br ${item.gradient} p-6 flex flex-col`}>
-                    <div className={`w-12 h-12 rounded-2xl bg-black/20 flex items-center justify-center mb-4 ${item.popular ? 'mt-4' : ''}`}>
-                      <item.icon className={`w-6 h-6 ${item.textColor}`} strokeWidth={1.8} />
+                  <div className={`bg-gradient-to-br ${item.gradient} min-h-[440px] p-7 flex flex-col items-center justify-center text-center`}>
+                    <div className={`w-14 h-14 rounded-2xl bg-black/20 flex items-center justify-center mb-5 ${item.popular ? 'mt-6' : ''}`}>
+                      <item.icon className={`w-7 h-7 ${item.textColor}`} strokeWidth={1.8} />
                     </div>
-                    <span className={`text-[9px] font-black uppercase tracking-widest opacity-60 ${item.textColor} bg-black/15 px-2 py-0.5 rounded-full self-start mb-2`}>
+                    <span className={`text-[9px] font-black uppercase tracking-widest opacity-60 ${item.textColor} bg-black/15 px-2.5 py-1 rounded-full mb-3`}>
                       {item.colorName}
                     </span>
-                    <p className={`font-black text-[26px] leading-none mb-0.5 ${item.textColor}`}>
+                    <p className={`font-black text-[32px] leading-none mb-1 ${item.textColor}`}>
                       {item.price.toLocaleString()}₮
                     </p>
-                    <p className={`text-[10px] font-bold opacity-60 mb-3 ${item.textColor}`}>/сар</p>
-                    <h3 className={`font-black text-sm uppercase tracking-wide mb-4 ${item.textColor}`}>{item.name}</h3>
-                    <div className="space-y-2">
+                    <p className={`text-[10px] font-bold opacity-60 mb-4 ${item.textColor}`}>/сар</p>
+                    <h3 className={`font-black text-[13px] uppercase tracking-wide mb-5 ${item.textColor}`}>{item.name}</h3>
+                    <div className="space-y-2.5 w-full">
                       {item.perks.map(p => (
-                        <div key={p} className={`flex items-center gap-2 text-[12px] font-medium ${item.textColor} opacity-90`}>
+                        <div key={p} className={`flex items-center justify-center gap-2 text-[12px] font-medium ${item.textColor} opacity-90`}>
                           <Check className="w-3.5 h-3.5 shrink-0 opacity-70" strokeWidth={2.5} />
                           <span>{p}</span>
                         </div>
